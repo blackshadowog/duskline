@@ -107,7 +107,7 @@ export default function AuthScreen({ onAuthenticated }: { onAuthenticated: (sess
             <Icon name="play" />
           </button>
 
-          <div className="local-notice"><Icon name="shield" /><span>{cloudConfigured ? "CLOUD PROFILE · Standard accounts use Supabase Auth and private saves. The demo admin shortcut remains local only." : "LOCAL MODE · Add a Supabase project for cross-device login, or transfer a sync code from Settings."}</span></div>
+
         </form>
       </section>
 
