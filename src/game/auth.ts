@@ -18,7 +18,7 @@ export interface AuthSession {
   id?: string;
 }
 
-export type AuthMode = "signin" | "signup";
+export type AuthMode = "signin" | "signup" | "reset" | "updatePassword";
 
 export type AuthResult =
   | { ok: true; session: AuthSession }
@@ -171,6 +171,21 @@ export async function authenticate(emailInput: string, password: string, mode: A
 
   if (supabase) {
     try {
+      if (mode === "reset") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        if (error) return { ok: false, error: error.message };
+        return { ok: false, error: "Password reset email sent! Check your inbox." };
+      }
+      if (mode === "updatePassword") {
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) return { ok: false, error: error.message };
+        // Immediately fetch user to complete login
+        const { data } = await supabase.auth.getUser();
+        if (!data.user) return { ok: false, error: "Failed to verify session after update." };
+        await loadCloudProgress(email, data.user.id);
+        return { ok: true, session: makeSession(email, false, "cloud", data.user.id) };
+      }
+
       const result = mode === "signup"
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password });

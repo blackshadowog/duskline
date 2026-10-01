@@ -30,11 +30,11 @@ export default function App() {
   const [chosenTime, setChosenTime] = useState<TimeOfDay | undefined>(undefined);
   const [runKey, setRunKey] = useState(0);
   const [returnTo, setReturnTo] = useState<Screen>("menu");
-  const [booting, setBooting] = useState(() => cloudConfigured && !readSession());
+  const [booting, setBooting] = useState(() => cloudConfigured && !readSession() && !window.location.hash.includes("type=recovery"));
   const loadedSaveRef = useRef(save);
 
   useEffect(() => {
-    if (!cloudConfigured || readSession()?.admin) return;
+    if (!cloudConfigured || readSession()?.admin || window.location.hash.includes("type=recovery")) return;
     let mounted = true;
     void restoreCloudSession()
       .then((restored) => {
