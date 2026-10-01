@@ -159,7 +159,7 @@ export async function authenticate(emailInput: string, password: string, mode: A
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { ok: false, error: "Enter a valid email address." };
   }
-  if (password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
+  if (mode !== "reset" && password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
 
   if (email === ADMIN_EMAIL) {
     if (mode === "signup") return { ok: false, error: "This reserved account can only sign in." };
