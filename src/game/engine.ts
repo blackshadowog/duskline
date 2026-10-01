@@ -1339,6 +1339,7 @@ export class SniperEngine {
   }
 
   private startDeath(enemy: Enemy) {
+    this.lastThermalActive = null;
     enemy.state = "dead";
     enemy.deathTime = 0;
     enemy.pendingDeath = false;
@@ -1753,7 +1754,10 @@ export class SniperEngine {
     }
   }
 
+  private lastThermalActive: boolean | null = null;
   private updateThermal(active: boolean) {
+    if (this.lastThermalActive === active) return;
+    this.lastThermalActive = active;
     for (const e of this.enemies) {
       const color = !e.alive
         ? 0x000000
@@ -1765,8 +1769,8 @@ export class SniperEngine {
               ? 0xff00aa
               : 0xff2a1a;
       for (const m of e.rig.materials) {
-        m.emissive.setHex(active ? color : 0x000000);
-        m.emissiveIntensity = active ? 1.4 : 0;
+        if (m.emissive) m.emissive.setHex(active ? color : 0x000000);
+        if (m.emissiveIntensity !== undefined) m.emissiveIntensity = active ? 1.4 : 0;
       }
     }
   }
@@ -1873,8 +1877,13 @@ export class SniperEngine {
       this.scopeBlend += ((this.scoped ? 1 : 0) - this.scopeBlend) * Math.min(1, rawDt * 14);
       const zoom = this.gun.zoomLevels[this.zoomIndex];
       const targetFov = this.scoped ? BASE_FOV / zoom : BASE_FOV;
-      this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, rawDt * 12);
-      this.camera.updateProjectionMatrix();
+      if (Math.abs(targetFov - this.camera.fov) > 0.01) {
+        this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, rawDt * 12);
+        this.camera.updateProjectionMatrix();
+      } else if (this.camera.fov !== targetFov) {
+        this.camera.fov = targetFov;
+        this.camera.updateProjectionMatrix();
+      }
 
       const stability = this.gun.stability * (1 + this.save.upgrades.steady * 0.15);
       let amp = this.scoped ? 0.0075 * Math.max(0.15, 1 - stability * 0.75) : 0.0015;
